@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Front End</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"
+        integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+    <style>
+        .set-error {
+            border: 1px solid red;
+        }
+
+        .remove-error {
+            border: inherit;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="p-5 bg-secondary text-center">
+        <h1 class="text-white">Nasir Blog</h1>
+        <h4 class="text-white">All Type Of Blogs Avaliabel</h4>
+    </div>
+    <div class="container mt-3">
+        <h2>Blogs Site</h2>
+        <br>
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#home">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#technology">Technology</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#educational">Educational</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#creat-Blog">Creat Blog</a>
+            </li>
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+            <div id="home" class="container tab-pane active home"><br>
+
+            </div>
+            <div id="technology" class="container tab-pane fade technology"><br>
+
+            </div>
+            <div id="educational" class="container tab-pane fade educational"><br>
+
+            </div>
+            <div id="creat-Blog" class="container tab-pane fade"><br>
+                <h3>Post A Blog</h3>
+                <form class="w-50">
+
+                    <div class="mb-3">
+                        <input type="text" class="form-control title" name="title" placeholder="Title">
+                        <p class="title-error text-danger"></p>
+                    </div>
+                    <div class="mb-3">
+                        <select name="category" class="form-select category">
+                            <option value="Choose Category">Choose Category</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Educational">Educational</option>
+                        </select>
+
+                    </div>
+                    <div class="mb-3">
+                        <input type="file" class="form-control file" name="file">
+                        <p class="file-error text-danger"></p>
+                    </div>
+                    <div class="mb-3">
+                        <textarea name="descryption" class="form-control descryption" rows="10"></textarea>
+                        <p class="descryption-error text-danger"></p>
+                    </div>
+                    <div class="mb-3">
+                        <button class="btn btn-primary mx-2 my-1 submit">Submit</button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+    <!-- footer -->
+    <div class="p-5 bg-secondary text-center">
+        <h4 class="text-white">Nasir Blog.com</h4>
+    </div>
+
+    <!-- script start -->
+    <script>
+        $(document).ready(() => {
+            $("form").submit((e) => {
+                e.preventDefault();
+                if ($(".category").val() != "Choose Category") {
+                    $.ajax({
+                        type: "POST",
+                        url: "http://localhost:8080/blog",
+                        data: new FormData(e.target),
+                        processData: false,
+                        contentType: false,// false na rakha to  content-Type : multipart/FormData 
+                        success: function (response) {
+                            console.log(response)
+                        },
+                        error: function (error) {
+
+                            let err = error.responseJSON;
+                            if (err.type == "unique") {
+                                $("." + err.filed).addClass("set-error");
+                                $(`.${err.filed}-error`).html(err.message)
+
+                            } else if (err.type == "required") {
+                                for (let data of err.filed) {
+                                    $(`.${data.filed}`).addClass("set-error")
+                                    $(`.${data.filed}-error`).html(data.message)
+
+                                }
+                            } else {
+                                $(`.${err.filed}`).addClass("set-error")
+                                $(`.${err.filed}-error`).html(err.message)
+                            }
+                        }
+
+                    })
+                } else {
+                    alert("Please Choose Category First")
+                }
+            })
+        })
+
+        // get blogs function
+        let tabName = "";
+
+
+        $(document).ready(() => {
+            $("a").on("click", function () {
+                tabName = $(this).text()
+                if (tabName == "Home") {
+                    let url = "http://localhost:8080/blog";
+
+                    ajexRequest(url)
+                } else {
+                    let url = "http://localhost:8080/blog" + "/" + tabName;
+                    ajexRequest(url);
+                }
+            });
+
+
+            // daynamic ajex request
+            const ajexRequest = (url) => {
+                $.ajax({
+                    type: "GET",
+                    url: url,
+                    success: function (response) {
+                        let allData = [];
+                        allData = response;
+                        if (tabName == "Home") {
+                            let home = $(".home");
+                            printFunc(home, allData)
+                        } else if (tabName == "Technology") {
+                            let technology = $(".technology");
+                            printFunc(technology, allData)
+                        } else if (tabName == "Educational") {
+                            let educational = $(".educational");
+                            printFunc(educational, allData)
+                        } else {
+                            console.log("not found wrong request")
+
+                        }
+                    },
+
+                })
+            }
+
+        })
+
+        // print categery function 
+        const printFunc = (box, allData) => {
+            for (let key in allData) {
+                let myPrint = ` 
+                         <div class="w-100 mb-5">
+                          <h3 class="text-uppercase">${allData[key].title}</h3>
+                            <img src="http://localhost:8080/${allData[key].image}" width="300" height="200" alt="">
+                             <p class="text-success">${allData[key].descryption}</p> 
+                           `;
+                $(box).append(myPrint);
+            }
+        }
+
+    </script>
+</body>
+
+</html>
